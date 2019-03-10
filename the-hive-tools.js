@@ -457,10 +457,6 @@
         )
     }
 
-    function highlightFriendsOnList() {
-        _debug('exec highlightFriendsOnList');
-    }
-
     // ================= main =================
 
     /**
@@ -476,7 +472,6 @@
                 addPortletUsersOnline();
                 break;
             case 'all_members':
-                highlightFriendsOnList();
                 break;
         }
     }
