@@ -4,7 +4,7 @@
 // @version      0.2.1
 // @description  add some little features to The Hive forum
 // @author       EifelDriver
-// @match        https://www.enter-the-hive.de/forum/forum/*
+// @match        https://www.enter-the-hive.de/forum/*
 // @grant        none
 // ==/UserScript==
 
@@ -13,7 +13,7 @@
 
     // --- settings ---
     var js_name                 = 'the-hive-tools';
-    var js_version              = '0.2.2';
+    var js_version              = '0.2.3';
     var js_debug                = 1;
     var watcher1, watcher2;
 
@@ -118,6 +118,26 @@
             styles.parentNode.removeChild(styles);
         }
         insertCss(css, css_id);
+    }
+
+    /**
+     * identify the current context of the loaded page
+     *
+     */
+    function getCurrentContext() {
+        var context = '';
+        switch (document.querySelector('body').id) {
+            case 'tpl_wbb_boardList':
+                context = 'frontpage';
+                break;
+            case 'tpl_wcf_team':
+                context = 'all_members';
+                break;
+            case 'tpl_wcf_membersList':
+                context = 'memberlist';
+                break;
+        }
+        return context;
     }
 
     /**
@@ -437,7 +457,9 @@
         )
     }
 
-
+    function highlightFriendsOnList() {
+        _debug('exec highlightFriendsOnList');
+    }
 
     // ================= main =================
 
@@ -449,7 +471,14 @@
         _debug('the-hive-tools started');
         loadConfig();
         updateCss(css);
-        addPortletUsersOnline();
+        switch (getCurrentContext()) {
+            case 'frontpage':
+                addPortletUsersOnline();
+                break;
+            case 'all_members':
+                highlightFriendsOnList();
+                break;
+        }
     }
 
     startScript();
