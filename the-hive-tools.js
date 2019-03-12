@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         the-hive-tools
 // @namespace    http://tampermonkey.net/
-// @version      0.3.1
+// @version      0.4.0
 // @description  add some little features to The Hive forum
 // @author       EifelDriver
 // @match        https://www.enter-the-hive.de/forum/*
-// @update       https://raw.githubusercontent.com/eifeldriver/the-hive-tools/master/the-hive-tools.min.js?v=0.3.1
+// @update       https://raw.githubusercontent.com/eifeldriver/the-hive-tools/master/the-hive-tools.min.js?v=0.4.0
 // @grant        none
 // ==/UserScript==
 
@@ -14,7 +14,7 @@
 
     // --- settings ---
     var js_name                 = 'the-hive-tools';
-    var js_version              = '0.3.1';
+    var js_version              = '0.4.0';
     var js_debug                = 1;
     var watcher1, watcher2;
 
@@ -65,6 +65,8 @@
 
         var css = dialog_css +
             '#my-users-online li .tht-highlight { color: #fff !important; border: 1px solid #fff !important; padding: 2px 5px !important; display:inline-block; margin: 3px; }' +
+            '#my-users-online a.userLink { font-style: italic; padding: 2px; } ' +
+            '#my-users-online a.userLink.dc-online { font-style: normal; border-bottom: 1px solid #aaa; } ' +
             '#my-users-absent li { height: 2em; } ' +
             '#my-users-absent li a {  } ' +
             '#my-users-absent li span { display: block; width: 100%; position: relative; top: -1.5em; text-align: right; } ' +
@@ -167,7 +169,7 @@
      * @param data
      */
     function setDataToCache(key, data) {
-        if (key && data && typeof key == 'string' && typeof data == 'string') {
+        if (typeof key == 'string' && data) {
             var cache_data = {data: data, timestamp: Date.now()};
             localStorage.setItem(js_name + '_cache_' + key, JSON.stringify(cache_data));
         }
@@ -416,6 +418,46 @@
     // ===============  main  ==================
 
     /**
+     * collect the online users from DC widget
+     *
+     */
+    function getDiscordUsersOnline() {
+        var dc_users = document.querySelectorAll('.scDiscordWidget .widget-member-name');
+        if (dc_users) {
+            var cache_data = getDataFromCache('dc_users', 60);  // caching for 1 min
+            if (cache_data === null) {
+                var users = {};
+                dc_users.forEach(function (user) {
+                    var tmp = user.innerText.split('|');
+                    if (tmp.length < 2) {
+                        users[tmp[0].trim()] = tmp[0].trim();
+                    } else {
+                        users[tmp[0].trim()] = tmp[1].trim();
+                    }
+                });
+                setDataToCache('dc_users', users);
+            } else {
+                // do nothing because users are still up2date
+            }
+        }
+    }
+
+    /**
+     * check if the given user in the dc_users list (means is online)
+     * @param user
+     */
+    function isDcUserOnline(user, dc_users) {
+        if (typeof dc_users !== 'object') {
+            dc_users = getDiscordUsersOnline();
+        }
+        var is_online = false;
+        if (dc_users && typeof user == 'string') {
+            is_online = dc_users.hasOwnProperty(user);
+        }
+        return is_online;
+    }
+
+    /**
      * copy user online widget into sidebar
      *
      */
@@ -441,11 +483,16 @@
      */
     function makeFriendsSelectable(selector) {
         var users = document.querySelectorAll(selector + ' a.userLink');
+        var dc_users = getDataFromCache('dc_users', 60);
         users.forEach(
             function(item) {
                 item.addEventListener('click', showUserDialog, false);
+                if (isDcUserOnline(item.innerText.trim(), dc_users)) {
+                    item.className = item.className.replace(' dc-online', '') + ' dc-online';
+                    item.title = dc_users[item.innerText.trim()];
+                }
             }
-        )
+        );
     }
 
     /**
@@ -577,6 +624,7 @@
         updateCss(css);
         switch (getCurrentContext()) {
             case 'frontpage':
+                getDiscordUsersOnline();
                 addPortletUsersOnline();
                 addPortletUsersAbsent();
                 break;
