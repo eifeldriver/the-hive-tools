@@ -6,6 +6,7 @@ Custom Javascript für das Forum vom The Hive Clan
 - "Benutzer online" wird in die Sidebar kopiert 
 - Context-Menü für die User hinzugefügt
 - Highlighting für gewählte User
+- "Benutzer abwesned" wird in der Sidebar angezeigt
 
 # Voraussetzungen
 Um das Script nutzen zu können müsst ihr das Browser-Addon "TamperMonkey" (kurz "TM") installieren.
@@ -30,7 +31,7 @@ Erstelle per Linksklick auf das TM-Icon oben ein neues Benutzerscript und füge 
 Speicher das geänderte Script ab.
 
 
-4. **Testen**  
+4. **Testen**
 Das Script wird nun bei jedem Seitenaufruf des Forum ausgeführt. Gehe ins Forum und schau, ob die oben genannten Features vorhanden sind.
 
 [gehe zur The-Hive-Forum-Seite](https://www.enter-the-hive.de/forum/forum/)
