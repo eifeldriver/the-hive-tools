@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         the-hive-tools
 // @namespace    http://tampermonkey.net/
-// @version      0.2.2.3
+// @version      0.3.0
 // @description  add some little features to The Hive forum
 // @author       EifelDriver
 // @match        https://www.enter-the-hive.de/forum/*
-// @update       https://raw.githubusercontent.com/eifeldriver/the-hive-tools/master/the-hive-tools.min.js?v=0.2.3
+// @update       https://raw.githubusercontent.com/eifeldriver/the-hive-tools/master/the-hive-tools.min.js?v=0.3.0
 // @grant        none
 // ==/UserScript==
 
@@ -14,7 +14,7 @@
 
     // --- settings ---
     var js_name                 = 'the-hive-tools';
-    var js_version              = '0.2.3';
+    var js_version              = '0.3.0';
     var js_debug                = 1;
     var watcher1, watcher2;
 
@@ -78,6 +78,9 @@
 
         var css = dialog_css +
             '#my-users-online li .tht-highlight { color: #fff !important; border: 1px solid #fff !important; padding: 2px 5px !important; display:inline-block; margin: 3px; }' +
+            '#my-users-absent li { height: 2em; } ' +
+            '#my-users-absent li a {  } ' +
+            '#my-users-absent li span { display: block; width: 100%; position: relative; top: -1.5em; text-align: right; } ' +
             '';
     }
 
@@ -153,6 +156,22 @@
             context = 'user';
         }
         return context;
+    }
+
+    /**
+     * read the content of the url and then call the callback function
+     * @param url
+     */
+    function readDataFromUrl(url, callback) {
+        var success = false;
+        if (window.XMLHttpRequest) {
+            var xhr = new XMLHttpRequest();
+            xhr.onload = callback;
+            xhr.open('GET', url);
+            xhr.send();
+            success = true;
+        }
+        return success;
     }
 
     // ============= save config ===============
@@ -458,6 +477,57 @@
         )
     }
 
+    /**
+     * copy user online widget into sidebar
+     *
+     */
+    function addPortletUsersAbsent() {
+        readDataFromUrl('https://www.enter-the-hive.de/forum/absent-members-list/', updateUsersAbsentPortlet);
+        // set basic html
+        var html = '' +
+            '<h2 class="boxTitle"><a href="https://www.enter-the-hive.de/forum/absent-members-list/">Benutzer abwesend</a></h2>' +
+            '<div class="boxContent"><ol></ol></div>' +
+            '';
+
+        var sidebar = document.querySelector('.sidebar.boxesSidebarRight .boxContainer');
+        if (sidebar) {
+            var box = document.createElement('SECTION');
+            box.id          = 'my-users-absent';
+            box.className   = 'box';
+            box.innerHTML   = html;
+            // insert after "Benutzer online"
+            sidebar.insertBefore(box, document.querySelector('#my-users-online').nextSibling);
+        }
+    }
+
+    /**
+     * process received absent list and build portlet content
+     * @param data
+     */
+    function updateUsersAbsentPortlet(data) {
+        if (data && this.status == 200) {
+            // parse data
+            var parser  = new DOMParser();
+            var dom     = parser.parseFromString(data.currentTarget.response, 'text/html');
+            var users   = [];
+            var html    = '';
+
+            // get names
+            dom.querySelectorAll('ol .containerHeadline H3 a').forEach( function(item, idx) {
+                users.push({name: item.innerText.trim(), url: item.href, absent: ''});
+            });
+            dom.querySelectorAll('.details .commaSeparated').forEach( function(item, idx) {
+                var tmp = item.innerText.trim().split("\n");
+                users[idx]['absent'] = tmp[2].trim().replace('abwesend bis', '');
+            });
+            users.forEach( function(user) {
+                html += '<li><a href="' + user.url +'" title="gehe zum Benutzerprofil">' + user.name + '</a><span>' + user.absent + '</span></li>';
+            });
+            var list = document.querySelector('#my-users-absent .boxContent ol');
+            list.innerHTML = html.trim();
+        }
+    }
+
     // ================= main =================
 
     /**
@@ -471,6 +541,7 @@
         switch (getCurrentContext()) {
             case 'frontpage':
                 addPortletUsersOnline();
+                addPortletUsersAbsent();
                 break;
             case 'all_members':
                 break;
