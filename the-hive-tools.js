@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         the-hive-tools
 // @namespace    http://tampermonkey.net/
-// @version      0.3.0
+// @version      0.3.1
 // @description  add some little features to The Hive forum
 // @author       EifelDriver
 // @match        https://www.enter-the-hive.de/forum/*
-// @update       https://raw.githubusercontent.com/eifeldriver/the-hive-tools/master/the-hive-tools.min.js?v=0.3.0
+// @update       https://raw.githubusercontent.com/eifeldriver/the-hive-tools/master/the-hive-tools.min.js?v=0.3.1
 // @grant        none
 // ==/UserScript==
 
@@ -14,55 +14,42 @@
 
     // --- settings ---
     var js_name                 = 'the-hive-tools';
-    var js_version              = '0.3.0';
+    var js_version              = '0.3.1';
     var js_debug                = 1;
     var watcher1, watcher2;
 
     // --- config vars ---
     var cfg                     = {};
-    if (true) {
 
-        var cfg_options = {
-            highlight_friends   : {type: 'bool',    label: 'Freunde hervorheben',       val: 1},
-            color_friend_bg     : {type: 'color',   label: 'Freund on Hintergrund',     val: '#ffff00'},
-            color_friend_fg     : {type: 'color',   label: 'Freund on Vordergrund',     val: '#333333'},
-            friends_list        : {type: 'list',    label: 'Freundesliste',             val: []},
-            version             : {type: 'readonly',label: 'Version',                   val: '?'}
-        };
+    var cfg_options = {
+        highlight_friends   : {type: 'bool',    label: 'Freunde hervorheben',       val: 1},
+        color_friend_bg     : {type: 'color',   label: 'Freund on Hintergrund',     val: '#ffff00'},
+        color_friend_fg     : {type: 'color',   label: 'Freund on Vordergrund',     val: '#333333'},
+        friends_list        : {type: 'list',    label: 'Freundesliste',             val: []},
+        version             : {type: 'readonly',label: 'Version',                   val: '?'}
+    };
 
-        var context_menu = {
-            user : {
-                open        : '<dt data-tht_menu="user" data-tht_task="open">open</dt>',
-                add         : '<dt data-tht_menu="user" data-tht_task="add">addToWatchlist</dt>',
-                remove      : '<dt data-tht_menu="user" data-tht_task="remove">removeFromWatchlist</dt>',
-                activities  : '<dt data-tht_menu="user" data-tht_task="activities">show activities</dt>'
-            }
+    var context_menu = {
+        user : {
+            open        : '<dt data-tht_menu="user" data-tht_task="open">open</dt>',
+            add         : '<dt data-tht_menu="user" data-tht_task="add">addToWatchlist</dt>',
+            remove      : '<dt data-tht_menu="user" data-tht_task="remove">removeFromWatchlist</dt>',
+            activities  : '<dt data-tht_menu="user" data-tht_task="activities">show activities</dt>'
         }
-
-        var thtMenu = {
-            user: {
-                open        : thtMenu_gotoUserProfile,
-                add         : thtMenu_addUserToWatchlist,
-                remove      : thtMenu_removeUserFromWatchlist,
-                activities  : thMenu_gotoUserActivities
-            }
-        };
-
     }
+
+    var thtMenu = {
+        user: {
+            open        : thtMenu_gotoUserProfile,
+            add         : thtMenu_addUserToWatchlist,
+            remove      : thtMenu_removeUserFromWatchlist,
+            activities  : thMenu_gotoUserActivities
+        }
+    };
 
     // --- observer ---
-    var sidebar_mo = new MutationObserver( function(mutations) {
-        mutations.forEach(function(mutation) {
-            if (mutation.attributeName == 'style') {
-                updateQuickSearch();
-            }
-        });
-    });
 
     // --- HTML snippets ---
-    if (true) {
-
-    }
 
     // --- stylesheets ---
     if (true) {
@@ -172,6 +159,51 @@
             success = true;
         }
         return success;
+    }
+
+    /**
+     * store data into cache
+     * @param key
+     * @param data
+     */
+    function setDataToCache(key, data) {
+        if (key && data && typeof key == 'string' && typeof data == 'string') {
+            var cache_data = {data: data, timestamp: Date.now()};
+            localStorage.setItem(js_name + '_cache_' + key, JSON.stringify(cache_data));
+        }
+    }
+
+    /**
+     * get cached data
+     * @param key
+     * @param expire
+     * @returns {*}
+     */
+    function getDataFromCache(key, expire) {
+        var data = null;
+        if (typeof expire != 'number') {
+            expire = 60 * 60 * 24;  // 1 day
+        }
+        if (key && typeof key == 'string') {
+            try {
+                var cache_data = JSON.parse(localStorage.getItem(js_name + '_cache_' + key));
+                if (cache_data === null) {
+                    // throw "error : cached data isnt JSON string";
+                    _debug('error : key doesnt exist in cache');
+                } else {
+                    if ((Date.now() - cache_data.timestamp) < expire) {
+                        data = cache_data.data;
+                        _debug('cached data for "' + key + '" loaded');
+                    } else {
+                        _debug('cached data for "' + key + '" has expired');
+                    }
+                }
+            }
+            catch (err) {
+                _debug('error: cached data isnt a JSON string');
+            }
+        }
+        return data;
     }
 
     // ============= save config ===============
@@ -482,11 +514,15 @@
      *
      */
     function addPortletUsersAbsent() {
-        readDataFromUrl('https://www.enter-the-hive.de/forum/absent-members-list/', updateUsersAbsentPortlet);
-        // set basic html
+        var data = getDataFromCache('user-absent');
+        if (data === null) {
+            readDataFromUrl('https://www.enter-the-hive.de/forum/absent-members-list/', updateUsersAbsentPortlet);
+            data = '';
+        }
+        // create portlet
         var html = '' +
             '<h2 class="boxTitle"><a href="https://www.enter-the-hive.de/forum/absent-members-list/">Benutzer abwesend</a></h2>' +
-            '<div class="boxContent"><ol></ol></div>' +
+            '<div class="boxContent"><ol>' + data.trim() + '</ol></div>' +
             '';
 
         var sidebar = document.querySelector('.sidebar.boxesSidebarRight .boxContainer');
@@ -525,6 +561,7 @@
             });
             var list = document.querySelector('#my-users-absent .boxContent ol');
             list.innerHTML = html.trim();
+            setDataToCache('user-absent', html);
         }
     }
 
