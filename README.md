@@ -5,7 +5,9 @@ Custom Javascript für das Forum vom The Hive Clan
 **Startseite**
 - "Benutzer online" wird in die Sidebar kopiert 
 - Context-Menü für die User hinzugefügt
-- Highlighting für gewählte User
+- Highlighting für selbst gewählte User
+- Hervorhebung von Usern die gerade auch im Discord on sind
+- Mouse-over zeigt beim Benutzer den Echtnamen an (falls dieser im Discord on ist)
 - "Benutzer abwesend" wird in der Sidebar angezeigt *1
 
 *1) Diese Ausgabe wird für 24 Std. gecached.
