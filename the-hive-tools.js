@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         the-hive-tools
 // @namespace    http://tampermonkey.net/
-// @version      0.4.0
+// @version      0.4.1
 // @description  add some little features to The Hive forum
 // @author       EifelDriver
 // @match        https://www.enter-the-hive.de/forum/*
-// @update       https://raw.githubusercontent.com/eifeldriver/the-hive-tools/master/the-hive-tools.min.js?v=0.4.0
+// @update       https://raw.githubusercontent.com/eifeldriver/the-hive-tools/master/the-hive-tools.min.js?v=0.4.1
 // @grant        none
 // ==/UserScript==
 
@@ -14,7 +14,7 @@
 
     // --- settings ---
     var js_name                 = 'the-hive-tools';
-    var js_version              = '0.4.0';
+    var js_version              = '0.4.1';
     var js_debug                = 1;
     var watcher1, watcher2;
 
@@ -77,6 +77,8 @@
 
     /**
      * debug output function
+     *
+     * @param txt the text to put into console
      */
     function _debug(txt) {
         if (js_debug) {
@@ -89,6 +91,8 @@
     /**
      * insert custom CSS
      *
+     * @param css the stylesheets
+     * @param css_id the CSS-id of the <style>-tag
      */
     function insertCss(css, css_id) {
         var style   = document.createElement('STYLE');
@@ -102,8 +106,8 @@
     /**
      * replace old styles-element with new one
      *
-     * @param css_id
-     * @param css
+     * @param css the stylesheets
+     * @param css_id the CSS-id of the <style>-tag
      */
     function updateCss(css, css_id) {
         var styles = document.querySelector('#' + css_id);
@@ -116,6 +120,8 @@
     /**
      * identify the current context of the loaded page
      *
+     * The CSS-id of the <body>-tag will be used to identify the context.
+     * @return the context as string
      */
     function getCurrentContext() {
         var context = '';
@@ -134,11 +140,13 @@
     }
 
     /**
-     * return the kind of clicked element to identify the context
+     * return the kind of clicked element
      *
-     * @param e
+     * The kind of clicked element means the context of the link. (i.e. 'user' = link to a forum user)
+     * @param e event
+     * @return the context as string
      */
-    function getClickedContext(e) {
+    function getClickedElementType(e) {
         var context = '';
         var target  = e.target;
         if (target.className.indexOf('userLink') !== -1 || target.closest('a.userLink')) {
@@ -148,10 +156,13 @@
     }
 
     /**
-     * read the content of the url and then call the callback function
-     * @param url
+     * read the content of the url
+     *
+     * @param url the target URL for the request
+     * @param callback the callback function for the request
+     * @return is true if the Ajax request has been started
      */
-    function readDataFromUrl(url, callback) {
+    function Ajax(url, callback) {
         var success = false;
         if (window.XMLHttpRequest) {
             var xhr = new XMLHttpRequest();
@@ -165,32 +176,37 @@
 
     /**
      * store data into cache
-     * @param key
-     * @param data
+     *
+     * @param key the cache key that allow later access to the stored data
+     * @param data the data that have to store into cache
+     * @return is true if the data has been stored into cache
      */
     function setDataToCache(key, data) {
+        var success = false;
         if (typeof key == 'string' && data) {
             var cache_data = {data: data, timestamp: Date.now()};
             localStorage.setItem(js_name + '_cache_' + key, JSON.stringify(cache_data));
+            success = true;
         }
+        return success;
     }
 
     /**
      * get cached data
-     * @param key
-     * @param expire
-     * @returns {*}
+     *
+     * @param key the cache key to access the stored data
+     * @param expire the amount of seconds after that the stored data has expired
+     * @return is null if any error occurs, else the stored data from cache
      */
     function getDataFromCache(key, expire) {
         var data = null;
         if (typeof expire != 'number') {
             expire = 60 * 60 * 24;  // 1 day
         }
-        if (key && typeof key == 'string') {
+        if (typeof key == 'string') {
             try {
                 var cache_data = JSON.parse(localStorage.getItem(js_name + '_cache_' + key));
                 if (cache_data === null) {
-                    // throw "error : cached data isnt JSON string";
                     _debug('error : key doesnt exist in cache');
                 } else {
                     if ((Date.now() - cache_data.timestamp) < expire) {
@@ -213,8 +229,8 @@
     /**
      * save config to loacal storage
      *
-     * @param cfg
-     * @returns {boolean}
+     * @param data the configuration as object
+     * @return true if the config has heen saved
      */
     function saveConfig(data) {
         var success = false;
@@ -228,6 +244,7 @@
 
     /**
      * load config from local storage
+     *
      */
     function loadConfig() {
         var data;
@@ -259,16 +276,28 @@
     }
 
     // ================= menu ==================
+    /* The thtMenu_-functions are handles for the context menu items.
+    */
 
+    /**
+     * goto the user profile page of the clicked user
+     *
+     * @param e event
+     */
     function thtMenu_gotoUserProfile(e) {
         var dialog = e.target.closest('#tht-dialog');
         if (dialog) {
             var infos = getTargetInfosFromDialog();
-            location.href = infos.url;
             removeDialog();
+            location.href = infos.url;
         }
     }
 
+    /**
+     * add the clicked username to the watchlist
+     *
+     * @param e event
+     */
     function thtMenu_addUserToWatchlist(e) {
         var dialog = e.target.closest('#tht-dialog');
         if (dialog) {
@@ -285,6 +314,11 @@
         }
     }
 
+    /**
+     * remove the clicked username from watchlist
+     *
+     * @param e event
+     */
     function thtMenu_removeUserFromWatchlist(e) {
         var dialog = e.target.closest('#tht-dialog');
         if (dialog) {
@@ -302,6 +336,11 @@
         }
     }
 
+    /**
+     * goto the activities page of the clicked user
+     *
+     * @param e event
+     */
     function thMenu_gotoUserActivities(e) {
         var dialog = e.target.closest('#tht-dialog');
         if (dialog) {
@@ -314,15 +353,13 @@
     // ================ dialog =================
 
     /**
-     * create the dialog
+     * create the context menu (dialog) to supply actions
      *
-     * @param target
-     * @param html
-     * @param options
+     * @param menu_type define the type of the context menu
+     * @param e event
      */
     function openDialog(menu_type, e) {
         removeDialog();
-        var context = getClickedContext(e);
         var wrapper = document.createElement('div');
         wrapper.id  = 'tht-dialog-wrapper';
         wrapper.innerHTML = '<div id="tht-dialog"><div class="inner"><dl></dl></div></div>';
@@ -330,7 +367,7 @@
         var dialog  = document.querySelector('#tht-dialog');
         var infos   = setTargetInfosToDialog(e.target);
 
-        switch (context) {
+        switch (menu_type) {
             case 'user':
                 dialog.style.top  = e.y + 'px';
                 dialog.style.left = e.x + 'px';
@@ -356,7 +393,7 @@
     }
 
     /**
-     * remove (close) the dialog
+     * remove the context menu (dialog)
      *
      */
     function removeDialog() {
@@ -367,12 +404,14 @@
     }
 
     /**
-     * store infos about the clickt element to the dialog for later use
+     * set infos about the clicked element to the dialog element for later use
+     *
+     * @param target the clicked element
      */
     function setTargetInfosToDialog(target) {
         var infos   = null;
         var dialog  = document.querySelector('#tht-dialog');
-        if (dialog) {
+        if (dialog && target) {
             if (target.tagName.toLowerCase() == 'font') {
                 target = target.parentNode;
             }
@@ -383,7 +422,9 @@
     }
 
     /**
-     * read infos about the clickt element to the dialog for later use
+     * get infos about the latest clicked element to the dialog element
+     *
+     * @return is null if no data found
      */
     function getTargetInfosFromDialog() {
         var infos = null
@@ -394,6 +435,15 @@
         return infos;
     }
 
+    /**
+     * insert a new context menu item with specific action
+     *
+     * see also: context_menu definition
+     *
+     * @param dialog reference to the dialog element
+     * @param menu_type the type of the menu for the new action
+     * @param opt_name the identifer for the new action
+     */
     function addDialogOption(dialog, menu_type, opt_name) {
         if (dialog && context_menu && context_menu.hasOwnProperty(menu_type) && typeof context_menu[menu_type] == 'object') {
             dialog.querySelector('dl').innerHTML += context_menu[menu_type][opt_name];
@@ -403,10 +453,13 @@
     /**
      * add callbacks to menu items
      *
+     * Any menu action element has the data-tht_task attribut, that contain the related action.
+     * The function handles for the existing actions are defined in ´thtMenu` variable.
+     *
      * @param dialog
      */
     function initDialogMenu(dialog) {
-        if (dialog && typeof dialog == 'object') {
+        if (typeof dialog == 'object') {
             var items = dialog.querySelectorAll("dt[data-tht_task]");
             items.forEach( function(item) {
                 item.addEventListener('click', thtMenu[item.dataset.tht_menu][item.dataset.tht_task]);
@@ -563,7 +616,7 @@
     function addPortletUsersAbsent() {
         var data = getDataFromCache('user-absent');
         if (data === null) {
-            readDataFromUrl('https://www.enter-the-hive.de/forum/absent-members-list/', updateUsersAbsentPortlet);
+            Ajax('https://www.enter-the-hive.de/forum/absent-members-list/', updateUsersAbsentPortlet);
             data = '';
         }
         // create portlet
