@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         the-hive-tools
 // @namespace    http://tampermonkey.net/
-// @version      0.4.2
+// @version      0.5.0 alpha
 // @description  add some little features to The Hive forum
 // @author       EifelDriver
 // @match        https://www.enter-the-hive.de/forum/*
-// @update       https://raw.githubusercontent.com/eifeldriver/the-hive-tools/master/the-hive-tools.min.js?v=0.4.2
+// @update       https://raw.githubusercontent.com/eifeldriver/the-hive-tools/master/the-hive-tools.min.js?v=0.5.0a
 // @grant        none
 // ==/UserScript==
 
@@ -14,7 +14,7 @@
 
     // --- settings ---
     var js_name                 = 'the-hive-tools';
-    var js_version              = '0.4.2';
+    var js_version              = '0.5.0 alpha';
     var js_debug                = 1;
     var watcher1, watcher2;
 
@@ -47,23 +47,45 @@
         }
     };
 
+    var status_icons = {
+        good    : {img: 'https://ubistatic-a.akamaihd.net/0115/tctd2/images/online.png',        title: 'Online'},
+        failed  : {img: 'https://ubistatic-a.akamaihd.net/0115/tctd2/images/interrupted.png',   title: 'Offline'},
+        bad     : {img: 'https://ubistatic-a.akamaihd.net/0115/tctd2/images/degradation.png',   title: '???'},
+        repair  : {img: 'https://ubistatic-a.akamaihd.net/0115/tctd2/images/maintenance.png',   title: 'Wartung'}
+    };
+
     // --- observer ---
 
     // --- HTML snippets ---
 
+    var server_status_bar = '' +
+        '<div class="game-status" id="game-status-division"><span>Division 2<i><!-- --></i></span><img src="#"></div>' +
+        '<div class="game-status" id="game-status-destiny"><span>Destiny 2<i><!-- --></i></span><img src="#"></div>' +
+        '<div class="game-status" id="game-status-anthem"><span>Anthem<i><!-- --></i></span><img src="#"></div>' +
+        '';
+
     // --- stylesheets ---
     if (true) {
 
-       var dialog_css = '' +
-           '#tht-dialog { position: fixed; z-index: 99999; background: #666; color: #ccc; border: 1px solid #ccc; }' +
-           '#tht-dialog .inner { } ' +
-           '#tht-dialog dl { } ' +
-           '#tht-dialog dt { color: #ccc; padding: 2px 5px; } ' +
-           '#tht-dialog dt:hover { background: #ccc; color: #666; cursor: pointer; } ' +
-           '#tht-dialog dt:active { background: #fff; color: #333; cursor: progress; } ' +
+        var dialog_css = '' +
+            '#tht-dialog { position: fixed; z-index: 99999; background: #666; color: #ccc; border: 1px solid #ccc; }' +
+            '#tht-dialog .inner { } ' +
+            '#tht-dialog dl { } ' +
+            '#tht-dialog dt { color: #ccc; padding: 2px 5px; } ' +
+            '#tht-dialog dt:hover { background: #ccc; color: #666; cursor: pointer; } ' +
+            '#tht-dialog dt:active { background: #fff; color: #333; cursor: progress; } ' +
             ' ';
 
-        var css = dialog_css +
+        var server_css = '' +
+            '#tht-game-status-bar { position: absolute; right: 315px; } ' +
+            '#tht-game-status-bar .game-status { display: inline-block; } ' +
+            '#tht-game-status-bar .game-status:hover { cursor: help; } ' +
+            '#tht-game-status-bar .game-status span { position: relative; display: inline-block; margin: 0 10px 0 25px; } ' +
+            '#tht-game-status-bar .game-status span i { display: inline-block; background: green; height: 2px; width: 100%; margin: 0; position: absolute; left: 0; bottom: -5px; } ' +
+            '#tht-game-status-bar .game-status img { display: inline-block; width: 24px; height: 24px; } ' +
+            '';
+
+        var css = dialog_css + server_css +
             '#my-users-online li .tht-highlight { color: #fff !important; border: 1px solid #fff !important; padding: 2px 5px !important; display:inline-block; margin: 3px; }' +
             '#my-users-online a.userLink { font-style: italic; padding: 2px; } ' +
             '#my-users-online a.userLink.dc-online { font-style: normal; border-bottom: 1px solid #aaa; } ' +
@@ -86,6 +108,24 @@
             var now = [d.getHours(), d.getMinutes(), d.getSeconds(), d.getMilliseconds()].join(':');
             console.log(now + ': ' + txt);
         }
+    }
+
+    /**
+     * parse given JSON string
+     *
+     * @param json the JSON encoded string
+     * @return {*} the parsed object or null/empty if not valid
+     */
+    function getJsonData(json) {
+        var data = null;
+        try {
+            data = JSON.parse(json);
+        }
+        catch(err) {
+            // stored cfg incorrect -> use default values
+            data = {};
+        }
+        return data;
     }
 
     /**
@@ -412,7 +452,7 @@
         var infos   = null;
         var dialog  = document.querySelector('#tht-dialog');
         if (dialog && target) {
-            if (target.tagName.toLowerCase() != 'a') {
+            if (target.tagName.toLowerCase() !== 'a') {
                 target = target.closest('a.userLink');
             }
             infos = {url: target.href, innerText: target.innerText};
@@ -467,8 +507,121 @@
         }
     }
 
+    // =========  game server stati ============
+
+    /**
+     * refresh time bar width to show the refresh cycle period
+     *
+     * @param game will be used to select the correct game refresh bar
+     */
+    function updateTimerBar(game) {
+        var refresh_timer = document.querySelector('#game-status-' + game + ' span > i');
+        if (refresh_timer) {
+            var percent = parseInt(refresh_timer.style.width);
+            if (percent < 2) {
+                refresh_timer.style.width = '100%';
+            } else {
+                refresh_timer.style.width = (percent - 1) + '%';
+            }
+        }
+    }
+
+    /**
+     * process the status response for Division
+     */
+    function updateGameStatus_Division() {
+        var refresh_seconds = 120;
+        var server_status   = getDataFromCache('game-status-division', refresh_seconds);
+        if (server_status === null) {
+            Ajax('https://game-status-api.ubisoft.com/v1/instances?appIds=6c6b8cd7-d901-4cd5-8279-07ba92088f06,6f220906-8a24-4b6a-a356-db5498501572,7d9bbf16-d76d-43e1-9e82-1e64b4dd5543',
+                function (data) {
+                    if (data && this.status == 200) {
+                        var data = getJsonData(data.currentTarget.response);
+                        if (typeof data == 'object' && data.hasOwnProperty('0')) {
+                            switch (data[0].Status.toLowerCase()) {
+                                case 'online'       : server_status = 'good'; break;
+                                case 'offline'      : server_status = 'failed'; break;
+                                case 'maintenance'  : server_status = 'repair'; break;
+                                default             : server_status = 'bad'; break;
+                            }
+                            setDataToCache('game-status-division', server_status);
+                            var img = document.querySelector('#game-status-division img');
+                            if (img) {
+                                img.src     = status_icons[server_status].img;
+                                img.title   = status_icons[server_status].title;
+                            }
+                            var refresh_timer = document.querySelector('#game-status-division span > i');
+                            refresh_timer.style.width = '100%';
+                            window.setInterval(function() { updateTimerBar('division'); }, (refresh_seconds * 1000) / 100);
+                        }
+                    }
+                }
+            );
+
+        } else {
+            var img = document.querySelector('#game-status-division img');
+            if (img && typeof server_status == 'string') {
+                img.src     = status_icons[server_status].img;
+                img.title   = status_icons[server_status].title;
+            }
+        }
+    }
+
+    /**
+     * process the status response for Destiny
+     */
+    function updateGameStatus_Destiny() {
+        var server_status = getDataFromCache('game-status-destiny', 60);
+        if (server_status === null) {
+            server_status = status_icons.bad;
+            setDataToCache('game-status-destiny', server_status);
+            var img = document.querySelector('#game-status-destiny img');
+            if (img) {
+                img.src     = status_icons['bad'].img;
+                img.title   = 'noch nicht fertig';  // status_icons['bad'].title;
+            }
+            var refresh_timer = document.querySelector('#game-status-destiny span > i');
+            refresh_timer.style.width = '0%';
+        }
+    }
+
+    /**
+     * process the status response for Anthem
+     */
+    function updateGameStatus_Anthem() {
+        var server_status = getDataFromCache('game-status-anthem', 60);
+        if (server_status === null) {
+            server_status = status_icons.bad;
+            setDataToCache('game-status-anthem', server_status);
+            var img = document.querySelector('#game-status-anthem img');
+            if (img) {
+                img.src     = status_icons['bad'].img;
+                img.title   = 'noch nicht fertig';  // status_icons['bad'].title;
+            }
+            var refresh_timer = document.querySelector('#game-status-anthem span > i');
+            refresh_timer.style.width = '0%';
+        }
+    }
 
     // ===============  main  ==================
+
+    function addServerStatusBar() {
+        // insert status bar boilerplate code
+        var nav_bar = document.querySelector('.pageNavigation .layoutBoundary');
+        if (nav_bar) {
+            nav_bar.style.position = 'relative';
+            var status_bar = document.createElement('DIV');
+            status_bar.id = 'tht-game-status-bar';
+            status_bar.innerHTML = server_status_bar;
+            nav_bar.appendChild(status_bar);
+            updateGameStatus_Division();
+            window.setInterval(updateGameStatus_Division, 60000);  // 1 min
+            updateGameStatus_Destiny();
+            window.setInterval(updateGameStatus_Destiny, 60000);  // 1 min
+            updateGameStatus_Anthem();
+            window.setInterval(updateGameStatus_Anthem, 60000);  // 1 min
+        }
+    }
 
     /**
      * collect the online users from DC widget
@@ -680,6 +833,7 @@
                 getDiscordUsersOnline();
                 addPortletUsersOnline();
                 addPortletUsersAbsent();
+                addServerStatusBar();
                 break;
             case 'all_members':
                 break;
