@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         the-hive-tools
 // @namespace    http://tampermonkey.net/
-// @version      0.4.1
+// @version      0.4.2
 // @description  add some little features to The Hive forum
 // @author       EifelDriver
 // @match        https://www.enter-the-hive.de/forum/*
-// @update       https://raw.githubusercontent.com/eifeldriver/the-hive-tools/master/the-hive-tools.min.js?v=0.4.1
+// @update       https://raw.githubusercontent.com/eifeldriver/the-hive-tools/master/the-hive-tools.min.js?v=0.4.2
 // @grant        none
 // ==/UserScript==
 
@@ -14,7 +14,7 @@
 
     // --- settings ---
     var js_name                 = 'the-hive-tools';
-    var js_version              = '0.4.1';
+    var js_version              = '0.4.2';
     var js_debug                = 1;
     var watcher1, watcher2;
 
@@ -412,8 +412,8 @@
         var infos   = null;
         var dialog  = document.querySelector('#tht-dialog');
         if (dialog && target) {
-            if (target.tagName.toLowerCase() == 'font') {
-                target = target.parentNode;
+            if (target.tagName.toLowerCase() != 'a') {
+                target = target.closest('a.userLink');
             }
             infos = {url: target.href, innerText: target.innerText};
             dialog.dataset.target = JSON.stringify(infos);
