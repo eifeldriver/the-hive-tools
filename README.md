@@ -9,6 +9,8 @@ Custom Javascript für das Forum vom The Hive Clan
 - Hervorhebung von Usern die gerade auch im Discord on sind
 - Mouse-over zeigt beim Benutzer den Echtnamen an (falls dieser im Discord on ist)
 - "Benutzer abwesend" wird in der Sidebar angezeigt *1
+- Game-Service-Monitor für Division 2
+- Game-Service-Monitor für Destiny 2 und Anthem vorbereitet
 
 *1) Diese Ausgabe wird für 24 Std. gecached.
 
