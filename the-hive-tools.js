@@ -86,7 +86,7 @@
             '';
 
         var css = dialog_css + server_css +
-            '#my-users-online li .tht-highlight { color: #fff !important; border: 1px solid #fff !important; padding: 2px 5px !important; display:inline-block; margin: 3px; }' +
+            '#my-users-online li .tht-highlight { color: #fff !important; padding: 2px 5px !important; display:inline-block; margin: 3px; }' +
             '#my-users-online a.userLink { font-style: italic; padding: 2px; } ' +
             '#my-users-online a.userLink.dc-online { font-style: normal; border-bottom: 1px solid #aaa; } ' +
             '#my-users-absent li { height: 2em; } ' +
@@ -591,6 +591,7 @@
     function updateGameStatus_Anthem() {
         var server_status = getDataFromCache('game-status-anthem', 60);
         if (server_status === null) {
+            // https://www.ea.com/games/anthem/live-status?isLocalized=true
             server_status = status_icons.bad;
             setDataToCache('game-status-anthem', server_status);
             var img = document.querySelector('#game-status-anthem img');
@@ -628,18 +629,28 @@
      *
      */
     function getDiscordUsersOnline() {
-        var dc_users = document.querySelectorAll('.scDiscordWidget .widget-member-name');
+        var dc_users = document.querySelectorAll('.scDiscordWidget .widget-member');
         if (dc_users) {
             var cache_data = getDataFromCache('dc_users', 60);  // caching for 1 min
             if (cache_data === null) {
                 var users = {};
                 dc_users.forEach(function (user) {
-                    var tmp = user.innerText.split('|');
-                    if (tmp.length < 2) {
-                        users[tmp[0].trim()] = tmp[0].trim();
+                    var user_avatar, user_nick, user_name, user_game, dc_name;
+                    dc_name     = user.querySelector('.widget-member-name').innerText;
+                    user_avatar = user.querySelector('.widget-member-avatar img').src;
+                    user_game   = user.querySelector('.widget-member-game');
+                    if (user_game) {
+                        user_game = user_game.innerText.trim();
                     } else {
-                        users[tmp[0].trim()] = tmp[1].trim();
+                        user_game = '';
                     }
+                    if (dc_name.indexOf('|') !== -1) {
+                        user_nick = dc_name.split('|').shift().trim();
+                        user_name = dc_name.split('|').pop().trim();
+                    } else {
+                        user_nick = user_name = dc_name.trim();
+                    }
+                    users[user_nick] = {nick: user_nick, name: user_name, avatar: user_avatar, game: user_game};
                 });
                 setDataToCache('dc_users', users);
             } else {
@@ -664,7 +675,7 @@
     }
 
     /**
-     * copy user online widget into sidebar
+     * copy user online widget from bottom into sidebar
      *
      */
     function addPortletUsersOnline() {
@@ -695,7 +706,8 @@
                 item.addEventListener('click', showUserDialog, false);
                 if (isDcUserOnline(item.innerText.trim(), dc_users)) {
                     item.className = item.className.replace(' dc-online', '') + ' dc-online';
-                    item.title = dc_users[item.innerText.trim()];
+                    var user_info = dc_users[item.innerText.trim()];
+                    item.title = user_info.name + (user_info.game ? ' [' + user_info.game + ']' : '');
                 }
             }
         );
