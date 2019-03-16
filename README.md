@@ -8,6 +8,7 @@ Custom Javascript für das Forum vom The Hive Clan
 - Highlighting für selbst gewählte User
 - Hervorhebung von Usern die gerade auch im Discord on sind
 - Mouse-over zeigt beim Benutzer den Echtnamen an (falls dieser im Discord on ist)
+- Mouse-over zeigt beim Benutzer das aktuelle Spiel an (falls dieses über Discord sichtbar ist)
 - "Benutzer abwesend" wird in der Sidebar angezeigt *1
 - Game-Service-Monitor für Division 2
 - Game-Service-Monitor für Destiny 2 und Anthem vorbereitet
@@ -41,5 +42,4 @@ Speicher das geänderte Script ab.
 Das Script wird nun bei jedem Seitenaufruf des Forum ausgeführt. Gehe ins Forum und schau, ob die oben genannten Features vorhanden sind.
 
 [gehe zur The-Hive-Forum-Seite](https://www.enter-the-hive.de/forum/forum/)
-
 
