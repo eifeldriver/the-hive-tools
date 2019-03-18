@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         the-hive-tools
 // @namespace    http://tampermonkey.net/
-// @version      0.6.0
+// @version      0.6.1
 // @description  add some little features to The Hive forum
 // @author       EifelDriver
 // @match        https://www.enter-the-hive.de/forum/*
-// @update       https://raw.githubusercontent.com/eifeldriver/the-hive-tools/master/the-hive-tools.min.js?v=0.6.0
+// @update       https://raw.githubusercontent.com/eifeldriver/the-hive-tools/master/the-hive-tools.min.js?v=0.6.1
 // @grant        none
 // ==/UserScript==
 
@@ -14,7 +14,7 @@
 
     // --- settings ---
     var js_name                 = 'the-hive-tools';
-    var js_version              = '0.6.0';
+    var js_version              = '0.6.1';
     var js_debug                = 1;
     var watcher1, watcher2;
 
@@ -1031,7 +1031,7 @@
             });
             dom.querySelectorAll('.details .commaSeparated').forEach( function(item, idx) {
                 var tmp = item.innerText.trim().split("\n");
-                users[idx]['absent'] = tmp[2].trim().replace('abwesend bis', '');
+                users[idx]['absent'] = tmp[2].trim().replace('abwesend bis', '').split(',').shift();
             });
             users.forEach( function(user) {
                 html += '<li><a href="' + user.url +'" title="gehe zum Benutzerprofil">' + user.name + '</a><span>' + user.absent + '</span></li>';
