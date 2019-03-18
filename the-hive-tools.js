@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         the-hive-tools
 // @namespace    http://tampermonkey.net/
-// @version      0.5.1
+// @version      0.6.0
 // @description  add some little features to The Hive forum
 // @author       EifelDriver
 // @match        https://www.enter-the-hive.de/forum/*
-// @update       https://raw.githubusercontent.com/eifeldriver/the-hive-tools/master/the-hive-tools.min.js?v=0.5.1
+// @update       https://raw.githubusercontent.com/eifeldriver/the-hive-tools/master/the-hive-tools.min.js?v=0.6.0
 // @grant        none
 // ==/UserScript==
 
@@ -14,7 +14,7 @@
 
     // --- settings ---
     var js_name                 = 'the-hive-tools';
-    var js_version              = '0.5.1';
+    var js_version              = '0.6.0';
     var js_debug                = 1;
     var watcher1, watcher2;
 
@@ -22,15 +22,16 @@
     var cfg                     = {};
 
     var cfg_options = {
-        version                 : {type: 'readonly',label: 'Version',                   val: js_version},
         user_online             : {type: 'bool',    label: 'erw. Benutzer online',      val: '1'},
         highlight_friends       : {type: 'bool',    label: 'Freunde hervorheben',       val: 1},
         friends_list            : {type: 'list',    label: 'Freundesliste',             val: []},
         custom_absent           : {type: 'bool',    label: 'Custom-Abwesenheit?',       val: 0},
         bubbles_color           : {type: 'color',   label: 'Bubble-Farbe',              val: '#ff0000'},
-        game_service_destiny    : {type: 'bool',    label: 'Game-Service: Anthem',      val: '0'},
-        game_service_division   : {type: 'bool',    label: 'Game-Service: Anthem',      val: '0'},
-        game_service_anthem     : {type: 'bool',    label: 'Game-Service: Anthem',      val: '0'}
+        game_service_destiny    : {type: 'bool',    label: 'Game-Service: Destiny',     val: '0'},
+        game_service_division   : {type: 'bool',    label: 'Game-Service: Division',    val: '0'},
+        game_service_anthem     : {type: 'bool',    label: 'Game-Service: Anthem',      val: '0'},
+        version                 : {type: 'readonly',label: 'Version',                   val: js_version},
+        help                    : {type: 'help',    label: 'Hilfe',                     val: 'https://github.com/eifeldriver/the-hive-tools/blob/master/README.md'}
     };
 
     var context_menu = {
@@ -80,6 +81,13 @@
             '#tht-dialog dt:active { background: #fff; color: #333; cursor: progress; } ' +
             ' ';
 
+        var cfg_css = '' +
+            '#tht-cfg-section { display: flex; flex-direction: row; padding-top: 2em; font-size: 14px; font-weight: 400; } ' +
+            '#tht-cfg-section .cfg-column { width: calc(100%/3); } ' +
+            '#tht-cfg-section .cfg-column label { display: inline-block; width: 65%; } ' +
+            '#tht-cfg-section input.color { width: 24px; } '
+            '';
+
         var server_css = '' +
             '#tht-game-status-bar { position: absolute; right: 315px; } ' +
             '#tht-game-status-bar .game-status { display: inline-block; } ' +
@@ -89,7 +97,7 @@
             '#tht-game-status-bar .game-status img { display: inline-block; width: 24px; height: 24px; } ' +
             '';
 
-        var css = dialog_css + server_css +
+        var css = dialog_css + cfg_css + server_css +
             '#my-users-online li .tht-highlight { color: #fff !important; padding: 2px 5px !important; display:inline-block; margin: 3px; }' +
             '#my-users-online a.userLink { font-style: italic; padding: 2px; } ' +
             '#my-users-online a.userLink.dc-online { font-style: normal; border-bottom: 1px solid #aaa; } ' +
@@ -282,6 +290,11 @@
             localStorage.setItem(js_name, JSON.stringify(data));
             success = true;
             _debug('cfg saved');
+            // update custom CSS
+            var css = '' +
+                '#pageContainer .badge.badgeUpdate, #pageContainer a.badge.badgeUpdate { background-color: ' + data.bubbles_color + '; } ' +
+                '';
+            updateCss(css, 'tht-custom-css');
         }
         return success;
     }
@@ -327,6 +340,7 @@
         var val;
         var elem = e.target;
         if (elem) {
+            var opt_key = elem.id.replace('cfg-', '');
             switch (elem.dataset.cfg_type) {
                 case 'bool':
                     if (elem.checked) {
@@ -334,15 +348,15 @@
                     } else {
                         val = 0;
                     }
-                    cfg[elem.id.replace('cfg-', '')] = val;
+                    cfg[opt_key] = val;
                     break;
 
                 case 'color':
-                    cfg[elem.id.replace('cfg-', '')] = elem.value;
+                    cfg[opt_key] = elem.value;
                     break;
 
                 case 'text':
-                    cfg[elem.id.replace('cfg-', '')] = elem.value;
+                    cfg[opt_key] = elem.value;
                     break;
             }
             saveConfig(cfg);
@@ -483,6 +497,13 @@
                         elem.className = 'field-readonly';
                         elem.innerText = js_version;
                         break;
+                    case 'help':
+                        lbl.innerHTML = ''; // no labeltext
+                        elem = document.createElement('BUTTON');
+                        elem.className = 'field-help';
+                        elem.innerText = cfg_options[property]['label'];
+                        elem.addEventListener('click', function() { openNewTab(cfg_options[property]['val']); } );
+                        break;
                 }
                 elem.addEventListener('change', instantSaveCfgOption);
                 var row = document.createElement('DIV');
@@ -550,6 +571,7 @@
             sec = document.querySelector('#tht-cfg-section #cfg-col-3');
             if (sec) {
                 createCfgOption('version', sec);
+                createCfgOption('help', sec);
             }
         }
     }
