@@ -31,7 +31,7 @@
         game_service_division   : {type: 'bool',    label: 'Game-Service: Division',    val: '0'},
         game_service_anthem     : {type: 'bool',    label: 'Game-Service: Anthem',      val: '0'},
         version                 : {type: 'readonly',label: 'Version',                   val: js_version},
-        help                    : {type: 'help',    label: 'Hilfe',                     val: 'https://github.com/eifeldriver/the-hive-tools/blob/master/README.md'}
+        help                    : {type: 'help',    label: 'Hilfe',                     val: '?',  url: 'https://github.com/eifeldriver/the-hive-tools/blob/master/README.md'}
     };
 
     var context_menu = {
@@ -63,11 +63,11 @@
 
     // --- HTML snippets ---
 
-    var server_status_bar = '' +
-        '<div class="game-status" id="game-status-division"><span>Division 2<i><!-- --></i></span><img src="#"></div>' +
-        '<div class="game-status" id="game-status-destiny"><span>Destiny 2<i><!-- --></i></span><img src="#"></div>' +
-        '<div class="game-status" id="game-status-anthem"><span>Anthem<i><!-- --></i></span><img src="#"></div>' +
-        '';
+    var server_status_bar = {
+        game_service_division:  '<div class="game-status" id="game-status-division"><span>Division 2<i><!-- --></i></span><img src="#"></div>',
+        game_service_destiny:   '<div class="game-status" id="game-status-destiny"><span>Destiny 2<i><!-- --></i></span><img src="#"></div>',
+        game_service_anthem:    '<div class="game-status" id="game-status-anthem"><span>Anthem<i><!-- --></i></span><img src="#"></div>'
+    };
 
     // --- stylesheets ---
     if (true) {
@@ -205,6 +205,15 @@
             context = 'user';
         }
         return context;
+    }
+
+    /**
+     * open a new tab and set the focus
+     * @param url
+     */
+    function openNewTab(url) {
+        var win = window.open(url, '_blank');
+        win.focus();
     }
 
     /**
@@ -498,11 +507,10 @@
                         elem.innerText = js_version;
                         break;
                     case 'help':
-                        lbl.innerHTML = ''; // no labeltext
                         elem = document.createElement('BUTTON');
                         elem.className = 'field-help';
-                        elem.innerText = cfg_options[property]['label'];
-                        elem.addEventListener('click', function() { openNewTab(cfg_options[property]['val']); } );
+                        elem.innerText = cfg_options[property]['val'];
+                        elem.addEventListener('click', function() { openNewTab(cfg_options[property]['url']); } );
                         break;
                 }
                 elem.addEventListener('change', instantSaveCfgOption);
@@ -547,7 +555,6 @@
         }
     }
 
-
     /**
      * build all config options in separte sections
      */
@@ -560,12 +567,12 @@
                 createCfgOption('user_online', sec);
                 createCfgOption('highlight_friends', sec);
                 createCfgOption('custom_absent', sec);
-                createCfgOption('bubbles_color', sec);
             }
             sec = document.querySelector('#tht-cfg-section #cfg-col-2');
             if (sec) {
-                createCfgOption('game_service_destiny', sec);
+                createCfgOption('bubbles_color', sec);
                 createCfgOption('game_service_division', sec);
+                createCfgOption('game_service_destiny', sec);
                 createCfgOption('game_service_anthem', sec);
             }
             sec = document.querySelector('#tht-cfg-section #cfg-col-3');
@@ -792,6 +799,9 @@
 
     // ===============  main  ==================
 
+    /**
+     * insert the game service status monitor
+     */
     function addServerStatusBar() {
         // insert status bar boilerplate code
         var nav_bar = document.querySelector('.pageNavigation .layoutBoundary');
@@ -799,14 +809,22 @@
             nav_bar.style.position = 'relative';
             var status_bar = document.createElement('DIV');
             status_bar.id = 'tht-game-status-bar';
-            status_bar.innerHTML = server_status_bar;
+            if (cfg.game_service_division)  { status_bar.innerHTML += server_status_bar.game_service_division; }
+            if (cfg.game_service_destiny)   { status_bar.innerHTML += server_status_bar.game_service_destiny; }
+            if (cfg.game_service_anthem)    { status_bar.innerHTML += server_status_bar.game_service_anthem; }
             nav_bar.appendChild(status_bar);
-            updateGameStatus_Division();
-            window.setInterval(updateGameStatus_Division, 60000);  // 1 min
-            updateGameStatus_Destiny();
-            window.setInterval(updateGameStatus_Destiny, 60000);  // 1 min
-            updateGameStatus_Anthem();
-            window.setInterval(updateGameStatus_Anthem, 60000);  // 1 min
+            if (cfg.game_service_division) {
+                updateGameStatus_Division();
+                window.setInterval(updateGameStatus_Division, 60000);  // 1 min
+            }
+            if (cfg.game_service_destiny) {
+                updateGameStatus_Destiny();
+                window.setInterval(updateGameStatus_Destiny, 60000);  // 1 min
+            }
+            if (cfg.game_service_anthem) {
+                updateGameStatus_Anthem();
+                window.setInterval(updateGameStatus_Anthem, 60000);  // 1 min
+            }
         }
     }
 
@@ -865,17 +883,19 @@
      *
      */
     function addPortletUsersOnline() {
-        var users = document.querySelector("section.box[data-box-identifier='com.woltlab.wcf.UsersOnline']");
-        if (users) {
-            var sidebar = document.querySelector('.sidebar.boxesSidebarRight .boxContainer');
-            if (sidebar) {
-                var box = document.createElement('SECTION');
-                box.id          = 'my-users-online';
-                box.className   = 'box';
-                box.innerHTML   = users.innerHTML;
-                sidebar.prepend(box);
-                makeFriendsSelectable('#my-users-online');
-                highlightFriends('#my-users-online');
+        if (cfg.user_online) {
+            var users = document.querySelector("section.box[data-box-identifier='com.woltlab.wcf.UsersOnline']");
+            if (users) {
+                var sidebar = document.querySelector('.sidebar.boxesSidebarRight .boxContainer');
+                if (sidebar) {
+                    var box = document.createElement('SECTION');
+                    box.id = 'my-users-online';
+                    box.className = 'box';
+                    box.innerHTML = users.innerHTML;
+                    sidebar.prepend(box);
+                    makeFriendsSelectable('#my-users-online');
+                    highlightFriends('#my-users-online');
+                }
             }
         }
     }
@@ -885,18 +905,20 @@
      * @param selector
      */
     function makeFriendsSelectable(selector) {
-        var users = document.querySelectorAll(selector + ' a.userLink');
-        var dc_users = getDataFromCache('dc_users', 60);
-        users.forEach(
-            function(item) {
-                item.addEventListener('click', showUserDialog, false);
-                if (isDcUserOnline(item.innerText.trim(), dc_users)) {
-                    item.className = item.className.replace(' dc-online', '') + ' dc-online';
-                    var user_info = dc_users[item.innerText.trim()];
-                    item.title = user_info.name + (user_info.game ? ' [' + user_info.game + ']' : '');
+        if (cfg.highlight_friends) {
+            var users = document.querySelectorAll(selector + ' a.userLink');
+            var dc_users = getDataFromCache('dc_users', 60);
+            users.forEach(
+                function (item) {
+                    item.addEventListener('click', showUserDialog, false);
+                    if (isDcUserOnline(item.innerText.trim(), dc_users)) {
+                        item.className = item.className.replace(' dc-online', '') + ' dc-online';
+                        var user_info = dc_users[item.innerText.trim()];
+                        item.title = user_info.name + (user_info.game ? ' [' + user_info.game + ']' : '');
+                    }
                 }
-            }
-        );
+            );
+        }
     }
 
     /**
@@ -941,23 +963,25 @@
      * @param selector
      */
     function highlightFriends(selector) {
-        var users = document.querySelectorAll(selector + ' a.userLink');
-        users.forEach(
-            function(item) {
-                if (isUserOnWatchlist(item.innerText)) {
-                    var font = item.querySelector('font');
-                    if (!font) { // link without font element
-                        item.style.backgroundColor = '#666666';
-                        item.style.color = '#333 !important';
-                        item.className = item.className.replace(' tht-highlight', '') + ' tht-highlight';
-                    } else {
-                        var color = font.color;
-                        font.style.backgroundColor = color;
-                        font.className = font.className.replace(' tht-highlight', '') + ' tht-highlight';
+        if (cfg.highlight_friends) {
+            var users = document.querySelectorAll(selector + ' a.userLink');
+            users.forEach(
+                function (item) {
+                    if (isUserOnWatchlist(item.innerText)) {
+                        var font = item.querySelector('font');
+                        if (!font) { // link without font element
+                            item.style.backgroundColor = '#666666';
+                            item.style.color = '#333 !important';
+                            item.className = item.className.replace(' tht-highlight', '') + ' tht-highlight';
+                        } else {
+                            var color = font.color;
+                            font.style.backgroundColor = color;
+                            font.className = font.className.replace(' tht-highlight', '') + ' tht-highlight';
+                        }
                     }
                 }
-            }
-        )
+            )
+        }
     }
 
     /**
@@ -965,25 +989,27 @@
      *
      */
     function addPortletUsersAbsent() {
-        var data = getDataFromCache('user-absent');
-        if (data === null) {
-            Ajax('https://www.enter-the-hive.de/forum/absent-members-list/', updateUsersAbsentPortlet);
-            data = '';
-        }
-        // create portlet
-        var html = '' +
-            '<h2 class="boxTitle"><a href="https://www.enter-the-hive.de/forum/absent-members-list/">Benutzer abwesend</a></h2>' +
-            '<div class="boxContent"><ol>' + data.trim() + '</ol></div>' +
-            '';
+        if (cfg.custom_absent) {
+            var data = getDataFromCache('user-absent');
+            if (data === null) {
+                Ajax('https://www.enter-the-hive.de/forum/absent-members-list/', updateUsersAbsentPortlet);
+                data = '';
+            }
+            // create portlet
+            var html = '' +
+                '<h2 class="boxTitle"><a href="https://www.enter-the-hive.de/forum/absent-members-list/">Benutzer abwesend</a></h2>' +
+                '<div class="boxContent"><ol>' + data.trim() + '</ol></div>' +
+                '';
 
-        var sidebar = document.querySelector('.sidebar.boxesSidebarRight .boxContainer');
-        if (sidebar) {
-            var box = document.createElement('SECTION');
-            box.id          = 'my-users-absent';
-            box.className   = 'box';
-            box.innerHTML   = html;
-            // insert after "Benutzer online"
-            sidebar.insertBefore(box, document.querySelector('#my-users-online').nextSibling);
+            var sidebar = document.querySelector('.sidebar.boxesSidebarRight .boxContainer');
+            if (sidebar) {
+                var box = document.createElement('SECTION');
+                box.id = 'my-users-absent';
+                box.className = 'box';
+                box.innerHTML = html;
+                // insert after "Benutzer online"
+                sidebar.insertBefore(box, document.querySelector('#my-users-online').nextSibling);
+            }
         }
     }
 
