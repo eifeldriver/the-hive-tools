@@ -22,11 +22,15 @@
     var cfg                     = {};
 
     var cfg_options = {
-        highlight_friends   : {type: 'bool',    label: 'Freunde hervorheben',       val: 1},
-        color_friend_bg     : {type: 'color',   label: 'Freund on Hintergrund',     val: '#ffff00'},
-        color_friend_fg     : {type: 'color',   label: 'Freund on Vordergrund',     val: '#333333'},
-        friends_list        : {type: 'list',    label: 'Freundesliste',             val: []},
-        version             : {type: 'readonly',label: 'Version',                   val: '?'}
+        version                 : {type: 'readonly',label: 'Version',                   val: js_version},
+        user_online             : {type: 'bool',    label: 'erw. Benutzer online',      val: '1'},
+        highlight_friends       : {type: 'bool',    label: 'Freunde hervorheben',       val: 1},
+        friends_list            : {type: 'list',    label: 'Freundesliste',             val: []},
+        custom_absent           : {type: 'bool',    label: 'Custom-Abwesenheit?',       val: 0},
+        bubbles_color           : {type: 'color',   label: 'Bubble-Farbe',              val: '#ff0000'},
+        game_service_destiny    : {type: 'bool',    label: 'Game-Service: Anthem',      val: '0'},
+        game_service_division   : {type: 'bool',    label: 'Game-Service: Anthem',      val: '0'},
+        game_service_anthem     : {type: 'bool',    label: 'Game-Service: Anthem',      val: '0'}
     };
 
     var context_menu = {
@@ -315,6 +319,36 @@
         saveConfig(cfg);
     }
 
+    /**
+     * save instant the config value after element has changed
+     * @param e
+     */
+    function instantSaveCfgOption(e) {
+        var val;
+        var elem = e.target;
+        if (elem) {
+            switch (elem.dataset.cfg_type) {
+                case 'bool':
+                    if (elem.checked) {
+                        val = 1;
+                    } else {
+                        val = 0;
+                    }
+                    cfg[elem.id.replace('cfg-', '')] = val;
+                    break;
+
+                case 'color':
+                    cfg[elem.id.replace('cfg-', '')] = elem.value;
+                    break;
+
+                case 'text':
+                    cfg[elem.id.replace('cfg-', '')] = elem.value;
+                    break;
+            }
+            saveConfig(cfg);
+        }
+    }
+
     // ================= menu ==================
     /* The thtMenu_-functions are handles for the context menu items.
     */
@@ -390,7 +424,137 @@
         }
     }
 
-    // ================ dialog =================
+    // ================ cfg dialog =================
+
+    function insertCfgDialog() {
+        var menu_sec = document.querySelector('.interactiveDropdownUserMenu .interactiveDropdownItemsContainer ul li'); // 1st li element
+        if (menu_sec) {
+            var cfg_sec = document.createElement('LI');
+            cfg_sec.id  = 'tht-cfg-section';
+            var sec1 = document.createElement('DIV');
+            sec1.id  = 'cfg-col-1';
+            sec1.className = 'cfg-column';
+            var sec2 = document.createElement('DIV');
+            sec2.id  = 'cfg-col-2';
+            sec2.className = 'cfg-column';
+            var sec3 = document.createElement('DIV');
+            sec3.id  = 'cfg-col-3';
+            sec3.className = 'cfg-column';
+            cfg_sec.append(sec1);
+            cfg_sec.append(sec2);
+            cfg_sec.append(sec3);
+            menu_sec.parentNode.prepend(cfg_sec);
+            buildCfgOptions();
+            updateCfgSections();
+        }
+    }
+
+    /**
+     * create a option field
+     * @param property
+     * @param container
+     */
+    function createCfgOption(property, container) {
+        if (container) {
+            if (cfg_options.hasOwnProperty(property)) {
+                var lbl         = document.createElement('LABEL');
+                var elem        = document.createElement('INPUT');
+                lbl.htmlFor     = property;
+                lbl.innerHTML   = cfg_options[property]['label'];
+                elem.id         = 'cfg-' + property;
+                switch (cfg_options[property]['type']) {
+                    case 'bool':
+                        elem.type = 'checkbox';
+                        elem.className = 'bool';
+                        elem.dataset.cfg_type = 'bool';
+                        break;
+                    case 'color':
+                        elem.type = 'color';
+                        elem.className = 'color';
+                        elem.dataset.cfg_type = 'color';
+                        break;
+                    case 'text':
+                        elem.type = 'text';
+                        elem.className = 'text';
+                        elem.dataset.cfg_type = 'text';
+                        break;
+                    case 'readonly':
+                        elem = document.createElement('SPAN');
+                        elem.className = 'field-readonly';
+                        elem.innerText = js_version;
+                        break;
+                }
+                elem.addEventListener('change', instantSaveCfgOption);
+                var row = document.createElement('DIV');
+                row.className = 'opt-row';
+                row.appendChild(lbl);
+                row.appendChild(elem);
+                container.appendChild(row);
+            }
+        }
+    }
+
+    /**
+     * update all config options with stored values
+     */
+    function updateCfgSections() {
+        var cfg_sec = document.querySelector('#tht-cfg-section');
+        if (cfg_sec) {
+            for (var property in cfg_options) {
+                var opt = document.querySelector('#cfg-' + property);
+                if (opt) {
+                    switch (opt.dataset.cfg_type) {
+                        case 'bool':
+                            if (cfg[property]) {
+                                opt.checked = 'checked';
+                            } else {
+                                opt.checked = '';
+                            }
+                            break;
+                        case 'color':
+                            if (cfg[property]) {
+                                opt.value = cfg[property];
+                            } else {
+                                opt.value = '';
+                            }
+                            break;
+                        case 'text':
+                            break;
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
+     * build all config options in separte sections
+     */
+    function buildCfgOptions() {
+        var sec;
+        var cfg_sec = document.querySelector('#tht-cfg-section');
+        if (cfg_sec) {
+            sec = document.querySelector('#tht-cfg-section #cfg-col-1');
+            if (sec) {
+                createCfgOption('user_online', sec);
+                createCfgOption('highlight_friends', sec);
+                createCfgOption('custom_absent', sec);
+                createCfgOption('bubbles_color', sec);
+            }
+            sec = document.querySelector('#tht-cfg-section #cfg-col-2');
+            if (sec) {
+                createCfgOption('game_service_destiny', sec);
+                createCfgOption('game_service_division', sec);
+                createCfgOption('game_service_anthem', sec);
+            }
+            sec = document.querySelector('#tht-cfg-section #cfg-col-3');
+            if (sec) {
+                createCfgOption('version', sec);
+            }
+        }
+    }
+
+    // ================ context menu =================
 
     /**
      * create the context menu (dialog) to supply actions
@@ -840,6 +1004,7 @@
         _debug('the-hive-tools started');
         loadConfig();
         updateCss(css);
+        insertCfgDialog();
         switch (getCurrentContext()) {
             case 'frontpage':
                 getDiscordUsersOnline();
