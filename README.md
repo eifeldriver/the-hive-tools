@@ -43,3 +43,35 @@ Das Script wird nun bei jedem Seitenaufruf des Forum ausgeführt. Gehe ins Forum
 
 [gehe zur The-Hive-Forum-Seite](https://www.enter-the-hive.de/forum/forum/)
 
+# Konfiguration
+Im Profil-Menü des Forum findet ihr die Optionen für "the-hive-tools". 
+Alle Einstellungen werden instant gespeichert, aber erst beim nächsten Reload der Seite wirksam. 
+ 
+Die folgenden Optionen gibt es:
+* **erw. Benutzer online**  
+Bei Aktivierung wird der Block "Benutzer online" rechts oben in die Sidebar kopiert.
+
+* **Freunde hervorheben**  
+Aktiviert die Möglichkeit Freunde auf die Watchlist zu setzen (Hervorhebung) und markiert User, die auch im Discord online sind.
+
+* **Custom-Abwesenheit?**  
+Bindet ein kompaktes Portlet für die Abwesenheit in die Sidebar ein.
+
+* **Bubble-Farbe**  
+Legt die Farbe für die Benachrichtungs-Bubbles fest.
+
+* **Game-Service: Division**  
+Aktiviert die Gameservice-Status-Anzeige für Division 2.
+
+* **Game-Service: Destiny**  
+Aktiviert die Gameservice-Status-Anzeige für Destiny 2. (nicht implementiert im Moment)
+
+* **Game-Service: Anthem**  
+Aktiviert die Gameservice-Status-Anzeige für Anthem. (nicht implementiert im Moment)
+
+* **Version**  
+Zeigt die installierte Versionnummer der "the-hive-tools" an.
+
+* **Hilfe**  
+Öffnet die Online-Hilfe.
+
