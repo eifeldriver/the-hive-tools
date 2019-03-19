@@ -57,7 +57,7 @@ Bei Aktivierung wird der Block "Benutzer online" rechts oben in die Sidebar kopi
 Aktiviert die Möglichkeit Freunde auf die Watchlist zu setzen (Hervorhebung) und markiert User, die auch im Discord online sind.
 
 * **Custom-Abwesenheit**  
-Bindet ein kompaktes Portlet für die Abwesenheit in die Sidebar ein.
+Ersetzt das Standard WBB-Widget durch ein kompakteres Portlet für die Abwesenheit in der Sidebar.
 
 * **Bubble-Farbe**  
 Legt die Farbe für die Benachrichtungs-Bubbles fest.

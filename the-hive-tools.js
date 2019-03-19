@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         the-hive-tools
 // @namespace    http://tampermonkey.net/
-// @version      0.6.2
+// @version      0.6.3
 // @description  add some little features to The Hive forum
 // @author       EifelDriver
 // @match        https://www.enter-the-hive.de/forum/*
-// @update       https://raw.githubusercontent.com/eifeldriver/the-hive-tools/master/the-hive-tools.min.js?v=0.6.2
+// @update       https://raw.githubusercontent.com/eifeldriver/the-hive-tools/master/the-hive-tools.min.js?v=0.6.3
 // @grant        none
 // ==/UserScript==
 
@@ -14,7 +14,7 @@
 
     // --- settings ---
     var js_name                 = 'the-hive-tools';
-    var js_version              = '0.6.2';
+    var js_version              = '0.6.3';
     var js_debug                = 1;
     var watcher1, watcher2;
 
@@ -998,7 +998,7 @@
     }
 
     /**
-     * copy user online widget into sidebar
+     * replace default absent widget with custom version
      *
      */
     function addPortletUsersAbsent() {
@@ -1020,8 +1020,18 @@
                 box.id = 'my-users-absent';
                 box.className = 'box';
                 box.innerHTML = html;
-                // insert after "Benutzer online"
-                sidebar.insertBefore(box, document.querySelector('#my-users-online').nextSibling);
+                // remove default WBB absent box
+                var wbb_box = document.querySelector(".sidebar .box[data-box-identifier='com.uz.wcf.absence.absentMembers']");
+                if (wbb_box) {
+                    wbb_box.parentNode.removeChild(wbb_box);
+                }
+                // insert new custom absent box
+                var dc_box = document.querySelector(".sidebar .box[data-box-identifier='de.softcreatr.wsc.DiscordWidgetBox']");
+                if (dc_box.nextSibling) {
+                    sidebar.insertBefore(box, dc_box.nextSibling); // insert after discord-widget
+                } else {
+                    sidebar.appendChild(box);   // insert as new widget
+                }
             }
         }
     }
