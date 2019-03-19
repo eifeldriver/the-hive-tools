@@ -22,16 +22,18 @@
     var cfg                     = {};
 
     var cfg_options = {
-        user_online             : {type: 'bool',    label: 'erw. Benutzer online',      val: '1'},
-        highlight_friends       : {type: 'bool',    label: 'Freunde hervorheben',       val: 1},
+        user_online             : {type: 'bool',    label: 'Benutzer online',           val: '1'},
+        highlight_friends       : {type: 'bool',    label: 'Freunde hervorheben',       val: '1'},
         friends_list            : {type: 'list',    label: 'Freundesliste',             val: []},
-        custom_absent           : {type: 'bool',    label: 'Custom-Abwesenheit?',       val: 0},
+        custom_absent           : {type: 'bool',    label: 'Custom-Abwesenheit',        val: '1'},
+        no_gallery_bubbles      : {type: 'bool',    label: 'keine Galerie-Bubbles.',    val: '1'},
         bubbles_color           : {type: 'color',   label: 'Bubble-Farbe',              val: '#ff0000'},
         game_service_destiny    : {type: 'bool',    label: 'Game-Service: Destiny',     val: '0'},
         game_service_division   : {type: 'bool',    label: 'Game-Service: Division',    val: '0'},
         game_service_anthem     : {type: 'bool',    label: 'Game-Service: Anthem',      val: '0'},
         version                 : {type: 'readonly',label: 'Version',                   val: js_version},
-        help                    : {type: 'help',    label: 'Hilfe',                     val: '?',  url: 'https://github.com/eifeldriver/the-hive-tools/blob/master/README.md'}
+        help                    : {type: 'help',    label: 'Hilfe',                     val: '?',  url: 'https://github.com/eifeldriver/the-hive-tools/blob/master/README.md'},
+        save                    : {type: 'save',    label: '&nbsp;',                    val: 'speichern'}
     };
 
     var context_menu = {
@@ -85,7 +87,9 @@
             '#tht-cfg-section { display: flex; flex-direction: row; padding-top: 2em; font-size: 14px; font-weight: 400; } ' +
             '#tht-cfg-section .cfg-column { width: calc(100%/3); } ' +
             '#tht-cfg-section .cfg-column label { display: inline-block; width: 65%; } ' +
-            '#tht-cfg-section input.color { width: 24px; } '
+            '#tht-cfg-section input.color { width: 24px; } ' +
+            '#tht-cfg-section label.opt-save { width: 0px; } ' +
+            '#tht-cfg-section .field-save { width: 100%; } ' +
             '';
 
         var server_css = '' +
@@ -484,6 +488,7 @@
                 var elem        = document.createElement('INPUT');
                 lbl.htmlFor     = property;
                 lbl.innerHTML   = cfg_options[property]['label'];
+                lbl.className   = 'opt-' + property;
                 elem.id         = 'cfg-' + property;
                 switch (cfg_options[property]['type']) {
                     case 'bool':
@@ -511,6 +516,12 @@
                         elem.className = 'field-help';
                         elem.innerText = cfg_options[property]['val'];
                         elem.addEventListener('click', function() { openNewTab(cfg_options[property]['url']); } );
+                        break;
+                    case 'save':
+                        elem = document.createElement('BUTTON');
+                        elem.className = 'field-save';
+                        elem.innerText = cfg_options[property]['val'];
+                        elem.addEventListener('click', function() { location.href = location.href; /* simple reload because all options will be saved instantly */ } );
                         break;
                 }
                 elem.addEventListener('change', instantSaveCfgOption);
@@ -567,6 +578,7 @@
                 createCfgOption('user_online', sec);
                 createCfgOption('highlight_friends', sec);
                 createCfgOption('custom_absent', sec);
+                createCfgOption('no_gallery_bubbles', sec);
             }
             sec = document.querySelector('#tht-cfg-section #cfg-col-2');
             if (sec) {
@@ -579,6 +591,7 @@
             if (sec) {
                 createCfgOption('version', sec);
                 createCfgOption('help', sec);
+                createCfgOption('save', sec);
             }
         }
     }
@@ -1042,6 +1055,19 @@
         }
     }
 
+    function hideGalleryNotifications() {
+        if (cfg.no_gallery_bubbles) {
+            var bubbles = document.querySelectorAll(".boxMenu li[data-identifier='com.woltlab.gallery.Gallery'] .badgeUpdate");
+            if (bubbles.length) {
+                bubbles.forEach(
+                    function(elem) {
+                        elem.parentNode.removeChild(elem);
+                    }
+                )
+            }
+        }
+    }
+
     // ================= main =================
 
     /**
@@ -1061,6 +1087,9 @@
                 addServerStatusBar();
                 break;
             case 'all_members':
+                break;
+            default:    // on any page
+                hideGalleryNotifications();
                 break;
         }
     }
