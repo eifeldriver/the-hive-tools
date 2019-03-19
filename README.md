@@ -50,14 +50,14 @@ Im Profil-Menü des Forum findet ihr die Optionen für "the-hive-tools".
 Alle Einstellungen werden instant gespeichert, aber erst beim nächsten Reload der Seite wirksam. 
  
 Die folgenden Optionen gibt es:
-* **erw. Benutzer online**  
+* **Benutzer online**  
 Bei Aktivierung wird der Block "Benutzer online" rechts oben in die Sidebar kopiert.
 
 * **Freunde hervorheben**  
 Aktiviert die Möglichkeit Freunde auf die Watchlist zu setzen (Hervorhebung) und markiert User, die auch im Discord online sind.
 
-* **Custom-Abwesenheit?**  
-Bindet ein kompaktes Portlet für die Abwesenheit in die Sidebar ein.
+* **Custom-Abwesenheit**  
+Ersetzt das Standard WBB-Widget durch ein kompakteres Portlet für die Abwesenheit in der Sidebar.
 
 * **Bubble-Farbe**  
 Legt die Farbe für die Benachrichtungs-Bubbles fest.
@@ -77,3 +77,5 @@ Zeigt die installierte Versionnummer der "the-hive-tools" an.
 * **Hilfe**  
 Öffnet die Online-Hilfe.
 
+* **speichern**  
+Die Optionen werden zwar instant gespeichert, aber einige Einstellungen wirken sich erst beim nächsten Neuladen aus. Somit tut dieser Button nur die Seite neu laden, so dass die Konfigurationsänderungen sichtbar werden.
