@@ -86,7 +86,7 @@
         css.push('#tht-cfg-btn { text-transform: none; }');
         css.push('#tht-cfg-btn span {  }');
         css.push('#tht-cfg-btn .icon { display: inline-block; margin-left: 15px; }');
-        css.push('#tht-cfg-section { transition: height 1s; height: 0; overflow: hidden; padding: 0; }');
+        css.push('#tht-cfg-section { height: 0; overflow: hidden; padding: 0; }');
         css.push('#tht-cfg-section.open { height: auto; }');
         css.push('#tht-cfg-wrapper { display: flex; flex-direction: row; padding: 15px 20px; font-size: 12px; font-weight: 400; }');
         css.push('#tht-cfg-wrapper .cfg-column { width: calc(100%/3); }');
