@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         the-hive-tools
 // @namespace    http://tampermonkey.net/
-// @version      0.6.3
+// @version      0.6.4
 // @description  add some little features to The Hive forum
 // @author       EifelDriver
 // @match        https://www.enter-the-hive.de/forum/*
-// @update       https://raw.githubusercontent.com/eifeldriver/the-hive-tools/master/the-hive-tools.min.js?v=0.6.3
+// @update       https://raw.githubusercontent.com/eifeldriver/the-hive-tools/master/the-hive-tools.min.js?v=0.6.4
 // @grant        none
 // ==/UserScript==
 
@@ -14,7 +14,7 @@
 
     // --- settings ---
     var js_name                 = 'the-hive-tools';
-    var js_version              = '0.6.3';
+    var js_version              = '0.6.4';
     var js_debug                = 1;
     var watcher1, watcher2;
 
@@ -72,43 +72,41 @@
     };
 
     // --- stylesheets ---
+    var css = [];
     if (true) {
+        // dialog CSS
+        css.push('#tht-dialog { position: fixed; z-index: 99999; background: #666; color: #ccc; border: 1px solid #ccc; }');
+        css.push('#tht-dialog .inner { } ');
+        css.push('#tht-dialog dl { } ');
+        css.push('#tht-dialog dt { color: #ccc; padding: 2px 5px; } ');
+        css.push('#tht-dialog dt:hover { background: #ccc; color: #666; cursor: pointer; } ');
+        css.push('#tht-dialog dt:active { background: #fff; color: #333; cursor: progress; } ');
 
-        var dialog_css = '' +
-            '#tht-dialog { position: fixed; z-index: 99999; background: #666; color: #ccc; border: 1px solid #ccc; }' +
-            '#tht-dialog .inner { } ' +
-            '#tht-dialog dl { } ' +
-            '#tht-dialog dt { color: #ccc; padding: 2px 5px; } ' +
-            '#tht-dialog dt:hover { background: #ccc; color: #666; cursor: pointer; } ' +
-            '#tht-dialog dt:active { background: #fff; color: #333; cursor: progress; } ' +
-            ' ';
+        // config CSS
+        css.push('#tht-cfg-section { display: flex; flex-direction: row; padding-top: 2em; font-size: 12px; font-weight: 400; } ');
+        css.push('#tht-cfg-section .cfg-column { width: calc(100%/3); } ');
+        css.push('#tht-cfg-section .cfg-column label { display: inline-block; width: 65%; } ');
+        css.push('#tht-cfg-section input.color { width: 24px; } ');
+        css.push('#tht-cfg-section label.opt-save { width: 0px; } ');
+        css.push('#tht-cfg-section .field-save { width: 100%; } ');
 
-        var cfg_css = '' +
-            '#tht-cfg-section { display: flex; flex-direction: row; padding-top: 2em; font-size: 12px; font-weight: 400; } ' +
-            '#tht-cfg-section .cfg-column { width: calc(100%/3); } ' +
-            '#tht-cfg-section .cfg-column label { display: inline-block; width: 65%; } ' +
-            '#tht-cfg-section input.color { width: 24px; } ' +
-            '#tht-cfg-section label.opt-save { width: 0px; } ' +
-            '#tht-cfg-section .field-save { width: 100%; } ' +
-            '';
+        // server CSS);
+        css.push('#tht-game-status-bar { position: absolute; right: 315px; } ');
+        css.push('#tht-game-status-bar .game-status { display: inline-block; } ');
+        css.push('#tht-game-status-bar .game-status:hover { cursor: help; } ');
+        css.push('#tht-game-status-bar .game-status span { position: relative; display: inline-block; margin: 0 10px 0 25px; } ');
+        css.push('#tht-game-status-bar .game-status span i { display: inline-block; background: green; height: 2px; width: 100%; margin: 0; position: absolute; left: 0; bottom: -5px; } ');
+        css.push('#tht-game-status-bar .game-status img { display: inline-block; width: 24px; height: 24px; } ');
 
-        var server_css = '' +
-            '#tht-game-status-bar { position: absolute; right: 315px; } ' +
-            '#tht-game-status-bar .game-status { display: inline-block; } ' +
-            '#tht-game-status-bar .game-status:hover { cursor: help; } ' +
-            '#tht-game-status-bar .game-status span { position: relative; display: inline-block; margin: 0 10px 0 25px; } ' +
-            '#tht-game-status-bar .game-status span i { display: inline-block; background: green; height: 2px; width: 100%; margin: 0; position: absolute; left: 0; bottom: -5px; } ' +
-            '#tht-game-status-bar .game-status img { display: inline-block; width: 24px; height: 24px; } ' +
-            '';
+        // user online CSS
+        css.push('#my-users-online li .tht-highlight { color: #fff !important; padding: 2px 5px !important; display:inline-block; margin: 3px; }');
+        css.push('#my-users-online a.userLink { font-style: italic; padding: 2px; } ');
+        css.push('#my-users-online a.userLink.dc-online { font-style: normal; border-bottom: 1px solid #aaa; } ');
+        css.push('#my-users-absent li { height: 2em; } ');
+        css.push('#my-users-absent li a {  } ');
+        css.push('#my-users-absent li span { display: block; width: 100%; position: relative; top: -1.5em; text-align: right; } ');
 
-        var css = dialog_css + cfg_css + server_css +
-            '#my-users-online li .tht-highlight { color: #fff !important; padding: 2px 5px !important; display:inline-block; margin: 3px; }' +
-            '#my-users-online a.userLink { font-style: italic; padding: 2px; } ' +
-            '#my-users-online a.userLink.dc-online { font-style: normal; border-bottom: 1px solid #aaa; } ' +
-            '#my-users-absent li { height: 2em; } ' +
-            '#my-users-absent li a {  } ' +
-            '#my-users-absent li span { display: block; width: 100%; position: relative; top: -1.5em; text-align: right; } ' +
-            '';
+        css = css.join(' ');
     }
 
     // ===============  helper  ==================
@@ -304,10 +302,9 @@
             success = true;
             _debug('cfg saved');
             // update custom CSS
-            var css = '' +
-                '#pageContainer .badge.badgeUpdate, #pageContainer a.badge.badgeUpdate { background-color: ' + data.bubbles_color + '; } ' +
-                '';
-            updateCss(css, 'tht-custom-css');
+            var instant_css = [];
+            instant_css.push('#pageContainer .badge.badgeUpdate, #pageContainer a.badge.badgeUpdate { background-color: ' + data.bubbles_color + '; } ');
+            updateCss(instant_css.join(' '), 'tht-custom-css');
         }
         return success;
     }
@@ -317,14 +314,14 @@
      *
      */
     function loadConfig() {
-        var data;
+        var data, property;
         try {
             data = JSON.parse(localStorage.getItem(js_name));
             if (data === null) {
                 throw "cfg loading error";
             }
             _debug('cfg loaded');
-            for (var property in cfg_options) {
+            for (property in cfg_options) {
                 if (!data.hasOwnProperty(property)) {
                     // set missing property with default value
                     data[property] = cfg_options[property]['val'];
@@ -336,7 +333,7 @@
         catch(err) {
             // stored cfg incorrect -> use default values
             data = {};
-            for (var property in cfg_options) {
+            for (property in cfg_options) {
                 data[property] = cfg_options[property]['val'];
             }
             _debug('cfg loading failed - use default settings');
@@ -453,11 +450,16 @@
 
     // ================ cfg dialog =================
 
+    /**
+     * insert the config options inside the user menu
+     */
     function insertCfgDialog() {
         var menu_sec = document.querySelector('.interactiveDropdownUserMenu .interactiveDropdownItemsContainer ul li'); // 1st li element
         if (menu_sec) {
             var cfg_sec = document.createElement('LI');
             cfg_sec.id  = 'tht-cfg-section';
+            var wrp = document.createElement('DIV');
+            wrp.id  = 'tht-config-wrapper';
             var sec1 = document.createElement('DIV');
             sec1.id  = 'cfg-col-1';
             sec1.className = 'cfg-column';
@@ -742,9 +744,9 @@
             Ajax('https://game-status-api.ubisoft.com/v1/instances?appIds=6c6b8cd7-d901-4cd5-8279-07ba92088f06,6f220906-8a24-4b6a-a356-db5498501572,7d9bbf16-d76d-43e1-9e82-1e64b4dd5543',
                 function (data) {
                     if (data && this.status == 200) {
-                        var data = getJsonData(data.currentTarget.response);
-                        if (typeof data == 'object' && data.hasOwnProperty('0')) {
-                            switch (data[0].Status.toLowerCase()) {
+                        var json = getJsonData(data.currentTarget.response);
+                        if (typeof json == 'object' && json.hasOwnProperty('0')) {
+                            switch (json[0].Status.toLowerCase()) {
                                 case 'online'       : server_status = 'good'; break;
                                 case 'offline'      : server_status = 'failed'; break;
                                 case 'maintenance'  : server_status = 'repair'; break;
@@ -1009,10 +1011,10 @@
                 data = '';
             }
             // create portlet
-            var html = '' +
-                '<h2 class="boxTitle"><a href="https://www.enter-the-hive.de/forum/absent-members-list/">Benutzer abwesend</a></h2>' +
-                '<div class="boxContent"><ol>' + data.trim() + '</ol></div>' +
-                '';
+            var html = [];
+            html.push('<h2 class="boxTitle"><a href="https://www.enter-the-hive.de/forum/absent-members-list/">Benutzer abwesend</a></h2>');
+            html.push('<div class="boxContent"><ol>' + data.trim() + '</ol></div>');
+            html = html.join('');
 
             var sidebar = document.querySelector('.sidebar.boxesSidebarRight .boxContainer');
             if (sidebar) {
