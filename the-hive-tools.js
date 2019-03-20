@@ -84,7 +84,7 @@
             ' ';
 
         var cfg_css = '' +
-            '#tht-cfg-section { display: flex; flex-direction: row; padding-top: 2em; font-size: 14px; font-weight: 400; } ' +
+            '#tht-cfg-section { display: flex; flex-direction: row; padding-top: 2em; font-size: 12px; font-weight: 400; } ' +
             '#tht-cfg-section .cfg-column { width: calc(100%/3); } ' +
             '#tht-cfg-section .cfg-column label { display: inline-block; width: 65%; } ' +
             '#tht-cfg-section input.color { width: 24px; } ' +
@@ -1095,8 +1095,10 @@
                 addPortletUsersOnline();
                 addPortletUsersAbsent();
                 addServerStatusBar();
+                hideGalleryNotifications();
                 break;
             case 'all_members':
+                hideGalleryNotifications();
                 break;
             default:    // on any page
                 hideGalleryNotifications();
