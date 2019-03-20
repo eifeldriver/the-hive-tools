@@ -76,35 +76,40 @@
     if (true) {
         // dialog CSS
         css.push('#tht-dialog { position: fixed; z-index: 99999; background: #666; color: #ccc; border: 1px solid #ccc; }');
-        css.push('#tht-dialog .inner { } ');
-        css.push('#tht-dialog dl { } ');
-        css.push('#tht-dialog dt { color: #ccc; padding: 2px 5px; } ');
-        css.push('#tht-dialog dt:hover { background: #ccc; color: #666; cursor: pointer; } ');
-        css.push('#tht-dialog dt:active { background: #fff; color: #333; cursor: progress; } ');
+        css.push('#tht-dialog .inner { }');
+        css.push('#tht-dialog dl { }');
+        css.push('#tht-dialog dt { color: #ccc; padding: 2px 5px; }');
+        css.push('#tht-dialog dt:hover { background: #ccc; color: #666; cursor: pointer; }');
+        css.push('#tht-dialog dt:active { background: #fff; color: #333; cursor: progress; }');
 
         // config CSS
-        css.push('#tht-cfg-section { display: flex; flex-direction: row; padding-top: 2em; font-size: 12px; font-weight: 400; } ');
-        css.push('#tht-cfg-section .cfg-column { width: calc(100%/3); } ');
-        css.push('#tht-cfg-section .cfg-column label { display: inline-block; width: 65%; } ');
-        css.push('#tht-cfg-section input.color { width: 24px; } ');
-        css.push('#tht-cfg-section label.opt-save { width: 0px; } ');
-        css.push('#tht-cfg-section .field-save { width: 100%; } ');
+        css.push('#tht-cfg-btn { text-transform: none; }');
+        css.push('#tht-cfg-btn span {  }');
+        css.push('#tht-cfg-btn .icon { display: inline-block; margin-left: 15px; }');
+        css.push('#tht-cfg-section { transition: height 1s; height: 0; overflow: hidden; padding: 0; }');
+        css.push('#tht-cfg-section.open { height: auto; }');
+        css.push('#tht-cfg-wrapper { display: flex; flex-direction: row; padding: 15px 20px; font-size: 12px; font-weight: 400; }');
+        css.push('#tht-cfg-wrapper .cfg-column { width: calc(100%/3); }');
+        css.push('#tht-cfg-wrapper .cfg-column label { display: inline-block; width: 65%; }');
+        css.push('#tht-cfg-wrapper input.color { width: 24px; }');
+        css.push('#tht-cfg-wrapper label.opt-save { width: 0px; }');
+        css.push('#tht-cfg-wrapper .field-save { width: 100%; }');
 
         // server CSS);
-        css.push('#tht-game-status-bar { position: absolute; right: 315px; } ');
-        css.push('#tht-game-status-bar .game-status { display: inline-block; } ');
-        css.push('#tht-game-status-bar .game-status:hover { cursor: help; } ');
-        css.push('#tht-game-status-bar .game-status span { position: relative; display: inline-block; margin: 0 10px 0 25px; } ');
-        css.push('#tht-game-status-bar .game-status span i { display: inline-block; background: green; height: 2px; width: 100%; margin: 0; position: absolute; left: 0; bottom: -5px; } ');
-        css.push('#tht-game-status-bar .game-status img { display: inline-block; width: 24px; height: 24px; } ');
+        css.push('#tht-game-status-bar { position: absolute; right: 315px; }');
+        css.push('#tht-game-status-bar .game-status { display: inline-block; }');
+        css.push('#tht-game-status-bar .game-status:hover { cursor: help; }');
+        css.push('#tht-game-status-bar .game-status span { position: relative; display: inline-block; margin: 0 10px 0 25px; }');
+        css.push('#tht-game-status-bar .game-status span i { display: inline-block; background: green; height: 2px; width: 100%; margin: 0; position: absolute; left: 0; bottom: -5px; }');
+        css.push('#tht-game-status-bar .game-status img { display: inline-block; width: 24px; height: 24px; }');
 
         // user online CSS
         css.push('#my-users-online li .tht-highlight { color: #fff !important; padding: 2px 5px !important; display:inline-block; margin: 3px; }');
-        css.push('#my-users-online a.userLink { font-style: italic; padding: 2px; } ');
-        css.push('#my-users-online a.userLink.dc-online { font-style: normal; border-bottom: 1px solid #aaa; } ');
-        css.push('#my-users-absent li { height: 2em; } ');
-        css.push('#my-users-absent li a {  } ');
-        css.push('#my-users-absent li span { display: block; width: 100%; position: relative; top: -1.5em; text-align: right; } ');
+        css.push('#my-users-online a.userLink { font-style: italic; padding: 2px; }');
+        css.push('#my-users-online a.userLink.dc-online { font-style: normal; border-bottom: 1px solid #aaa; }');
+        css.push('#my-users-absent li { height: 2em; }');
+        css.push('#my-users-absent li a {  }');
+        css.push('#my-users-absent li span { display: block; width: 100%; position: relative; top: -1.5em; text-align: right; }');
 
         css = css.join(' ');
     }
@@ -456,25 +461,39 @@
     function insertCfgDialog() {
         var menu_sec = document.querySelector('.interactiveDropdownUserMenu .interactiveDropdownItemsContainer ul li'); // 1st li element
         if (menu_sec) {
+            // cfg-menu button
+            var cfg_btn = document.createElement('BUTTON');
+            cfg_btn.id  = 'tht-cfg-btn';
+            cfg_btn.innerHTML = '<span>THT-Optionen</span><i class="icon fa-angle-down"></i>';
+            document.querySelector('.interactiveDropdownHeader').append(cfg_btn);
+            cfg_btn.addEventListener('click', toggleCfgDialog);
+            // cfg dialog
             var cfg_sec = document.createElement('LI');
             cfg_sec.id  = 'tht-cfg-section';
-            var wrp = document.createElement('DIV');
-            wrp.id  = 'tht-config-wrapper';
-            var sec1 = document.createElement('DIV');
-            sec1.id  = 'cfg-col-1';
-            sec1.className = 'cfg-column';
-            var sec2 = document.createElement('DIV');
-            sec2.id  = 'cfg-col-2';
-            sec2.className = 'cfg-column';
-            var sec3 = document.createElement('DIV');
-            sec3.id  = 'cfg-col-3';
-            sec3.className = 'cfg-column';
-            cfg_sec.append(sec1);
-            cfg_sec.append(sec2);
-            cfg_sec.append(sec3);
+            var html = [];
+            html.push('<div id="tht-cfg-wrapper">');
+            html.push('<div id="cfg-col-1" class="cfg-column"></div>');
+            html.push('<div id="cfg-col-2" class="cfg-column"></div>');
+            html.push('<div id="cfg-col-3" class="cfg-column"></div>');
+            html.push('</div>');
+            cfg_sec.innerHTML = html.join('');
             menu_sec.parentNode.prepend(cfg_sec);
             buildCfgOptions();
             updateCfgSections();
+        }
+    }
+
+    function toggleCfgDialog(e) {
+        e.target.blur();
+        var dialog = document.querySelector('#tht-cfg-section');
+        if (dialog) {
+            if (dialog.className.indexOf(' open') != -1) {
+                // close dialog
+                dialog.className = dialog.className.replace(' open', '');
+            } else {
+                // open dialog
+                dialog.className = dialog.className.replace(' open', '') + ' open';
+            }
         }
     }
 
