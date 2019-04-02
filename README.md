@@ -12,6 +12,7 @@ Custom Javascript für das Forum vom The Hive Clan
 - "Benutzer abwesend" wird in der Sidebar angezeigt *1
 - Game-Service-Monitor für Division 2
 - Game-Service-Monitor für Destiny 2 und Anthem vorbereitet
+- Direkt-Link zur Suche-Seite zur Quick-Search hinzugefügt
 - Konfigurations-Dialog im Benutzer-Menü
 - alle Modifikationen lassen sich an/abschalten
 
