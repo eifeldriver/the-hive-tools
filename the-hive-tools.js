@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         the-hive-tools
 // @namespace    http://tampermonkey.net/
-// @version      0.6.5
+// @version      0.7.1a
 // @description  add some little features to The Hive forum
 // @author       EifelDriver
 // @match        https://www.enter-the-hive.de/forum/*
-// @update       https://raw.githubusercontent.com/eifeldriver/the-hive-tools/master/the-hive-tools.min.js?v=0.6.5
+// @update
 // @grant        none
 // ==/UserScript==
 
@@ -14,7 +14,7 @@
 
     // --- settings ---
     var js_name                 = 'the-hive-tools';
-    var js_version              = '0.6.5';
+    var js_version              = '0.7.1a';
     var js_debug                = 1;
     var watcher1, watcher2;
 
@@ -26,6 +26,7 @@
         highlight_friends       : {type: 'bool',    label: 'Freunde hervorheben',       val: '1'},
         friends_list            : {type: 'list',    label: 'Freundesliste',             val: []},
         custom_absent           : {type: 'bool',    label: 'Custom-Abwesenheit',        val: '1'},
+        direct_search           : {type: 'bool',    label: 'direkt zur Suche',          val: '1'},
         no_gallery_bubbles      : {type: 'bool',    label: 'keine Galerie-Bubbles.',    val: '1'},
         bubbles_color           : {type: 'color',   label: 'Bubble-Farbe',              val: '#ff0000'},
         game_service_destiny    : {type: 'bool',    label: 'Game-Service: Destiny',     val: '0'},
@@ -110,6 +111,7 @@
         css.push('#my-users-absent li { height: 2em; }');
         css.push('#my-users-absent li a {  }');
         css.push('#my-users-absent li span { display: block; width: 100%; position: relative; top: -1.5em; text-align: right; }');
+        css.push('#goto-search-page { display: block; text-align: center; background: #333; padding: 5px 2px; }');
 
         css = css.join(' ');
     }
@@ -600,6 +602,7 @@
                 createCfgOption('highlight_friends', sec);
                 createCfgOption('custom_absent', sec);
                 createCfgOption('no_gallery_bubbles', sec);
+                createCfgOption('direct_search', sec);
             }
             sec = document.querySelector('#tht-cfg-section #cfg-col-2');
             if (sec) {
@@ -1099,6 +1102,18 @@
         }
     }
 
+    function modifyQuickSearch() {
+        if (cfg && cfg.direct_search) {
+            var bar = document.querySelector('#pageHeaderSearch');
+            if (bar) {
+                var span = document.createElement('SPAN');
+                span.id = 'goto-search-page';
+                span.innerHTML = '<a href="/forum/search/" title="direkt zur Suche">direkt zur erweiterten Suche</a>';
+                bar.appendChild(span);
+            }
+        }
+    }
+
     // ================= main =================
 
     /**
@@ -1123,6 +1138,7 @@
                 break;
             default:    // on any page
                 hideGalleryNotifications();
+                modifyQuickSearch();
                 break;
         }
     }
