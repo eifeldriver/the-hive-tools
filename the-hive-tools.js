@@ -111,7 +111,7 @@
         css.push('#my-users-absent li { height: 2em; }');
         css.push('#my-users-absent li a {  }');
         css.push('#my-users-absent li span { display: block; width: 100%; position: relative; top: -1.5em; text-align: right; }');
-        css.push('#goto-search-page { display: block; text-align: center; background: #333; padding: 5px 2px; }');
+        css.push('#goto-search-page { display: block; text-align: center; background: rgba(33, 33, 35, 1); padding: 5px 2px; text-transform: none; }');
 
         css = css.join(' ');
     }
@@ -1108,6 +1108,7 @@
             if (bar) {
                 var span = document.createElement('SPAN');
                 span.id = 'goto-search-page';
+                span.className = 'button';
                 span.innerHTML = '<a href="/forum/search/" title="direkt zur Suche">direkt zur erweiterten Suche</a>';
                 bar.appendChild(span);
             }
